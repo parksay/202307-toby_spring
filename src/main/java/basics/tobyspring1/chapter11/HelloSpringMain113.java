@@ -3,7 +3,7 @@ package basics.tobyspring1.chapter11;
 
 import java.sql.SQLException;
 
-public class HelloSpringApplication {
+public class HelloSpringMain113 {
 
 	public static void main(String[] args) throws ClassNotFoundException, SQLException {
 		//
