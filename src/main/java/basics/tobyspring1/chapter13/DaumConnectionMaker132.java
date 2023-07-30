@@ -1,14 +1,15 @@
-package basics.tobyspring1.chapter12;
+package basics.tobyspring1.chapter13;
 
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class DaumUserDao123 extends UserDao123 {
-    @Override
-    public Connection getConnection() throws ClassNotFoundException, SQLException {
-        // Daum 독자적인 기술 코드 어쩌구 저쩌구...
+public class DaumConnectionMaker132 implements ConnectionMaker132 {
+
+    public Connection makeConnection() throws ClassNotFoundException, SQLException {
+        //
+        // Daum 독자적인 기술 코드 어쩌구 저쩌구....
         //
         Class.forName("com.mysql.cj.jdbc.Driver");
         //
@@ -17,4 +18,5 @@ public class DaumUserDao123 extends UserDao123 {
         //
         return c;
     }
+
 }

@@ -3,7 +3,7 @@ package basics.tobyspring1.chapter12;
 
 import java.sql.SQLException;
 
-public class HelloSpringMain {
+public class HelloSpringMain123 {
 
 	public static void main(String[] args) throws ClassNotFoundException, SQLException {
 		// chapter 1.2.2 test
@@ -25,18 +25,19 @@ public class HelloSpringMain {
 		System.out.println(user2.getId() + "조회 성공");
 
 		// chapter 1.2.3 test
-		NaverUserDao123 ndao = new NaverUserDao123();
+		NaverUserDao123 dao2 = new NaverUserDao123();
+		// DaumUserDao123 dao2 = new DaumUserDao123();
 		//
 		User111 user3 = new User111();
 		user3.setId("test123");
 		user3.setName("테스트123");
 		user3.setPassword("myTest");
 		//
-		ndao.add(user3);
+		dao2.add(user3);
 		//
 		System.out.println(user3.getId() + "등록 성공");
 		//
-		User111 user4 = ndao.get(user3.getId());
+		User111 user4 = dao2.get(user3.getId());
 		//
 		System.out.println(user4.getName());
 		System.out.println(user4.getPassword());
