@@ -6,10 +6,10 @@ public class UserDao112 {
 
     public void add(User111 user) throws ClassNotFoundException, SQLException {
         //
-        Class.forName("com.mysql.jdbc.Driver");
+        Class.forName("com.mysql.cj.jdbc.Driver");
         //
         Connection c = DriverManager.getConnection(
-                "jdbc:mysql://localhost:springbook", "spring", "book");
+                "jdbc:mysql://localhost:3306/springbook", "root", "0000");
         //
         PreparedStatement ps = c.prepareStatement(
                 "insert into users(id, name, password) values (?, ?, ?)");
@@ -26,10 +26,11 @@ public class UserDao112 {
 
     public User111 get(String id) throws ClassNotFoundException, SQLException {
         //
-        Class.forName("com.mysql.jdbc.Driver");
+        Class.forName("com.mysql.cj.jdbc.Driver");
+
         //
         Connection c = DriverManager.getConnection(
-                "jdbc:mysql://localhost/springbook", "spring", "book");
+                "jdbc:mysql://localhost:3306/springbook", "root", "0000");
         //
         PreparedStatement ps = c.prepareStatement(
                 "select * from users where id = ?");
@@ -66,3 +67,32 @@ public class UserDao112 {
 // 메소드 추출(extract method) 라고 한다.
 // 중복되는 코드나 한 테두리로 묶이는 기능을 담당하는 코드를 따로 뽑아서 한 메소드로 만들어주는 리팩토링 기법.
 // 이렇게 수정한 클래스가 UserDao122.java
+
+
+
+// >> dependency 추가하는 법
+// build.gradle 에다가 아래 문구 추가하기
+//	dependencies {
+//		runtimeOnly 'com.mysql:mysql-connector-j'
+//	}
+// 이게 예전에는 아래였음.
+// runtimeOnly 'mysql:mysql-connector-java'
+// 근데 springboot 3.0 넘어가면서부터 아래 걸로 바뀜.
+// runtimeOnly 'com.mysql:mysql-connector-j'
+
+// >> driver 가져오기
+// 토비의 스프링 책에는 아래처럼 나와있음.
+// Class.forName("com.mysql.jdbc.Driver");
+// 근데 책도 거의 10년 전 내용이니까...
+// 위 이름은 deprecated 되고 아래 걸로 바뀜
+// Class.forName("com.mysql.cj.jdbc.Driver");
+
+// >> DB 접근 파라미터
+//  Connection c = DriverManager.getConnection(
+//                "jdbc:mysql://localhost:3306/mysql", "root", "0000");
+// "jdbc:mysql://localhost:포트 번호/database 이름", "mysql 아이디", "mysql 비밀번호"
+// 포트 번호랑 아이디, 비밀번호는 처음에 mysql 설치할 때 입력했던 내용
+// database 이름은 mysql 실행하고 show databases; 했을 때 나오는 그 database 들.
+// 포트 번호는 cmd 창 열어서 netstat 쳐보면 리스트 나옴
+
+

@@ -45,10 +45,11 @@ public class UserDao122 {
 
     private Connection getConnection() throws ClassNotFoundException, SQLException {
         //
-        Class.forName("com.mysql.jdbc.Driver");
+        Class.forName("com.mysql.cj.jdbc.Driver");
+
         //
         Connection c = DriverManager.getConnection(
-                "jdbc:mysql://localhost/springbook", "spring", "book");
+                "jdbc:mysql://localhost:3306/springbook", "root", "0000");
         //
         return c;
     }

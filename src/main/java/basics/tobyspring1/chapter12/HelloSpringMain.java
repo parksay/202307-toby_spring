@@ -6,12 +6,12 @@ import java.sql.SQLException;
 public class HelloSpringMain {
 
 	public static void main(String[] args) throws ClassNotFoundException, SQLException {
-		//
+		// chapter 1.2.2 test
 		UserDao122 dao = new UserDao122();
 		//
 		User111 user = new User111();
-		user.setId("test113");
-		user.setName("테스트113");
+		user.setId("test122");
+		user.setName("테스트122");
 		user.setPassword("myTest");
 		//
 		dao.add(user);
@@ -23,6 +23,24 @@ public class HelloSpringMain {
 		System.out.println(user2.getName());
 		System.out.println(user2.getPassword());
 		System.out.println(user2.getId() + "조회 성공");
+
+		// chapter 1.2.3 test
+		NaverUserDao123 ndao = new NaverUserDao123();
+		//
+		User111 user3 = new User111();
+		user3.setId("test123");
+		user3.setName("테스트123");
+		user3.setPassword("myTest");
+		//
+		ndao.add(user3);
+		//
+		System.out.println(user3.getId() + "등록 성공");
+		//
+		User111 user4 = ndao.get(user3.getId());
+		//
+		System.out.println(user4.getName());
+		System.out.println(user4.getPassword());
+		System.out.println(user4.getId() + "조회 성공");
 	}
 
 }
