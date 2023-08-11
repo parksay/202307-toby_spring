@@ -11,11 +11,11 @@ public class UserDaoTest222 {
     public static void main(String[] args) throws ClassNotFoundException, SQLException {
 
         // 오브젝트 생성
-        ApplicationContext context = new GenericXmlApplicationContext("applicationContext184.xml");
+        ApplicationContext context = new GenericXmlApplicationContext("chapter18/applicationContext184.xml");
         UserDao184 dao = context.getBean("userDao", UserDao184.class);
         User111 user = new User111();
-        user.setId("test184");
-        user.setName("테스트184");
+        user.setId("test222");
+        user.setName("테스트222");
         user.setPassword("myTest");
         //
         dao.add(user);
