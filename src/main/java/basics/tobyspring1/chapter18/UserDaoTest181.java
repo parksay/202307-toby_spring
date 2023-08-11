@@ -1,8 +1,6 @@
 package basics.tobyspring1.chapter18;
 
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
 
 import java.sql.SQLException;
@@ -11,7 +9,7 @@ public class UserDaoTest181 {
     public static void main(String[] args) throws ClassNotFoundException, SQLException {
 
         // 오브젝트 생성
-         ApplicationContext context = new GenericXmlApplicationContext("applicationContext181.xml");
+         ApplicationContext context = new GenericXmlApplicationContext("chapter18/applicationContext181.xml");
         // ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext182.xml", UserDao181.class);
         UserDao181 dao1 = context.getBean("userDao", UserDao181.class);
         UserDao181 dao2 = context.getBean("userDao", UserDao181.class);
@@ -25,7 +23,7 @@ public class UserDaoTest181 {
 
 
         // 똑같은 설정 정보로 만든 스프링 컨테이너의 똑같은 클래스로 만든 오브젝트라도 참조값은 다름
-        ApplicationContext context2 = new GenericXmlApplicationContext("applicationContext181.xml");
+        ApplicationContext context2 = new GenericXmlApplicationContext("chapter18/applicationContext181.xml");
         System.out.println(context.getBean("userDao"));
         System.out.println(context2.getBean("userDao"));
         UserDao181 dao3 = context.getBean("userDao", UserDao181.class);
