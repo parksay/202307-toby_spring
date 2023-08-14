@@ -48,7 +48,7 @@ public class UserDao233 {
         //
         User232 user = null;
         boolean isNext = rs.next();
-        if(isNext) {    // 아니 select 해오는 데이터가 없는데 왜 자꾸 rs.next() 에 true 가 나오지?
+        if(isNext) {
             user = new User232();
             user.setId(rs.getString("id"));
             user.setName(rs.getString("name"));
