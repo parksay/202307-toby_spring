@@ -7,11 +7,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class UserDao3321 {
+public class UserDao3322 {
 
     private DataSource dataSource;
 
-    public UserDao3321() {
+    public UserDao3322() {
     }
 
     public void setDataSource(DataSource dataSource) {
@@ -20,7 +20,7 @@ public class UserDao3321 {
 
     public void add(final User232 user) throws SQLException {
         // nested class >>>>>>>>>>>>>>>>>
-        class AddStatement332 implements StatementStrategy331 {
+        StatementStrategy331 st = new StatementStrategy331() {
             @Override
             public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
                 PreparedStatement ps = c.prepareStatement("insert into users(id, name, password) values (?, ?, ?)");
@@ -29,26 +29,22 @@ public class UserDao3321 {
                 ps.setString(3, user.getPassword());
                 return ps;
             }
-        }
-        // nested class <<<<<<<<<<<<<<<
-
-        StatementStrategy331 stmt = new AddStatement332();
-        this.jdbcContextWithStrategy(stmt);
+        };
+        // nested class <<<<<<<<<<<<<<<<<
+        this.jdbcContextWithStrategy(st);
     }
 
     public void deleteAll() throws SQLException {
         // nested class >>>>>>>>>>>>>>>>>>>>>
-        class DeleteAllStatement332 implements StatementStrategy331 {
+        StatementStrategy331 st = new StatementStrategy331() {
             @Override
             public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
                 PreparedStatement ps = c.prepareStatement("delete from users");
                 return ps;
             }
-        }
+        };
         // nested class <<<<<<<<<<<<<<<<<
-
-        StatementStrategy331 stmt = new DeleteAllStatement332();
-        this.jdbcContextWithStrategy(stmt);
+        this.jdbcContextWithStrategy(st);
     }
 
     public void jdbcContextWithStrategy(StatementStrategy331 stmt) {
@@ -91,11 +87,7 @@ public class UserDao3321 {
 // p.224 - chapter 3.3
 //UserDao3223.class 에서 넘어와 봐.
 //이렇게 하니까 일단 파일을 메소드마다 하나씩 만들어야 하는 점은 해결이 됐지.
-//UserDao 안에다가 클래스를 중첩해서 더 만들어버리기.
-//또 하나. 메소드 안에 선언하는 로컬 클래스는 해당 메소드에서 사용하는 변수에 직접 접근할 수 있어.
-//이전처럼 User 오브젝트를 생성자에 넣어주지 않아도 됨.
-//그냥 바로 자신을 정의하고 있는 메소드의 User 오브젝트를 가져다가 쓰면 됨.
-//대신 메소드에서는 그 User 오브젝트를 final 로 선언해줘야 함.
+//UserDao 안에다가 클래스는 중첩해서 더 만들어버리기.
 //그럼 파일은 하나만 가지고 되기는 하는데...
 //여전히 뭔가 좀 복잡해보이고 번거로워 보이고 정신 없지.
 //여기서 중첩 클래스들을 익명 로컬 클래스로 선언하면 좀 더 간단해보일 거야.
