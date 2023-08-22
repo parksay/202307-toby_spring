@@ -77,7 +77,6 @@ public class UserDao361 {
 
     public User232 get(String id) {
         return this.jdbcTemplate.queryForObject("select * from users where id = ?",
-                new Object[] {id},
                 new RowMapper<User232>() {
                     @Override
                     public User232 mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -87,12 +86,14 @@ public class UserDao361 {
                         user.setPassword(rs.getString("password"));
                         return user;
                     }
-                });
+                },
+                new Object[] {id}
+                );
         // 위에는 메소드 안에서 rowMapper 콜백 오브젝트를 바로 만들어서 쓰고 바로 버리는 것.
         // 근데 이게 get() 이랑 getAll() 이랑 똑같은 걸 중복해서 만들고 있고 앞으로도 계속 나올 거 같아.
         // 그래서 이 rowMapper 콜백 오브젝트를 클래스 변수에 넣어두고 공유해서 쓰기로 함.
         // 아래는 클래스 변수에 미리 만들어 둔 rowMapper 콜백 오브젝트를 가져다 쓰는 것.
-        // return this.jdbcTemplate.queryForObject("select * from users where id = ?", new Object[] {id}, this.rowMapper);
+        // return this.jdbcTemplate.queryForObject("select * from users where id = ?", this.rowMapper,z new Object[] {id});
     }
 
     public List<User232> getAll() throws DataAccessException, SQLException {
@@ -160,21 +161,24 @@ public class UserDao361 {
 //참고로 ResultSetExtractor 는 앞에서 Calculator 계산기 연습으로 만들어 볼 때 lineReadTemplate() 과 LineCallBack 에서 활용했던 방식이랑 비슷한 방식임.
 //
 // queryForObject()
-//jdbcTemplate.queryForObject("sql here ?", new Object[] { ~~ }, new RowMapper<T>() { ~~~ });
+//jdbcTemplate.queryForObject("sql here ?", new RowMapper<T>() { ~~~ }, new Object[] { ~~ });
 // get() 메소드 봐봐.
 //PreparedStatement 는 첫 번째 파라미터에 sql 만 넣으면 그거 갖다가 내장 콜백 써서 만들어 줌.
-//만약 sql 안에 치환자(?) 있으면 두 번째 파라미터 new Object[] { ~~ } 에다가 넣어줌.
-//만약 sql 안에 치환자(?) 가 없다면 두 번째 파라미터 new Object[] { ~~ } 전체를 생략 가능.
-//이제 좀 더 살펴봐야 할 부분이 세 번째 파라미터 RowMapper 콜백임.
+//이제 좀 더 살펴봐야 할 부분이 두 번째 파라미터 RowMapper 콜백임.
 //바로 전에 썼던 거는 ResultSetExtractor 였지.
 //이 콜백 함수는 ResultSet 을 한 번 받아와서 지가 혼자 내부에서 다 처리하고 최종적인 결과를 뽑아서 return 도 한 번만 함.
 //반면에 RowMapper 는 조금 다름.
 //RowMapper 콜백은 row 하나를 오브젝트 하나에 맵핑하는 기능이기 때문에 sql 실행한 결과 row 가 여러 개라면 그 갯수만큼 여러 번 호출될 수 있음.
 //단, 우리가 지금 jdbcTemplate 에서 호출하고 있는 queryForObject 는 결과로 던져주는 row 가 1개뿐이라고 기대하는 메소드임.
 //그래서 한 번만 불러지기는 함.
+//이제 마지막 세 번째 파라미터는 치환자에 넣어줄 값들임.
+//만약 sql 안에 치환자(?) 있으면 세 번째 파라미터 new Object[] { ~~ } 에다가 넣어줌.
+//만약 sql 안에 치환자(?) 가 없다면 세 번째 파라미터 new Object[] { ~~ } 전체를 생략 가능.
+//참고, 책에는 queryForObject 파라미터 순서가 아래처럼 나와 있는데 이건 이제 deprecatd 됐음.
+// queryForObject("sql", new Object[] { ~~ }, rowMapper);
 //
 // query()
-//jdbcTemplate.query("sql here ?", new Object[] { ~~ }, new RowMapper<T>() { ~~~ });
+//jdbcTemplate.query("sql here ?", new RowMapper<T>() { ~~~ }, new Object[] { ~~ });
 // queryForObject() 랑 똑같음.
 // 단, query 는 sql 실행 결과 row 가 여러 줄인 경우에까지 일반적으로 쓸 수 있음.
 // 예시 getAll()
