@@ -1,17 +1,21 @@
-package basics.tobyspring42;
+package basics.tobyspring4;
 
 import basics.tobyspring2.chapter23.User232;
-import basics.tobyspring4.chapter42.UserDaoJdbc42;
+import basics.tobyspring4.chapter42.UserDao42;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator;
+import org.springframework.jdbc.support.SQLExceptionTranslator;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -21,11 +25,12 @@ import java.util.List;
 public class UserDaoTest42 {
     // 픽스처 선언
     @Autowired
-    private UserDaoJdbc42 dao;
+    private UserDao42 dao;
+    @Autowired
+    private DataSource dataSource;
     private User232 user1;
     private User232 user2;
     private User232 user3;
-
 
     @BeforeEach
     public void setUp() {
@@ -131,13 +136,31 @@ public class UserDaoTest42 {
         //
         this.dao.deleteAll();
         //
-        this.dao.add(user1);
-        this.dao.add(user1);
-        Assertions.assertThrows(DuplicateKeyException.class,
-            ()-> {
-                this.dao.add(user1);
-                this.dao.add(user1);
-        });
+        Executable callback = ()-> {
+            this.dao.add(this.user1);
+            this.dao.add(this.user1);
+        };
+        //
+        Assertions.assertThrows(DuplicateKeyException.class, callback);
+    }
 
+    @Test
+    public void sqlExceptionTranslate() {
+        this.dao.deleteAll();
+
+        try {
+            this.dao.add(this.user1);
+            this.dao.add(this.user1);
+        } catch (DuplicateKeyException ex) {
+            SQLException sqlEx = (SQLException)ex.getRootCause();
+            SQLExceptionTranslator set = new SQLErrorCodeSQLExceptionTranslator(this.dataSource);
+            Assertions.assertInstanceOf(DuplicateKeyException.class, set.translate(null, null, sqlEx));
+        }
     }
 }
+
+
+//UserDaoJdbc42.class 보면 스프링에서 예외 전환을 잘 활용하고 있다고 했지.
+//그걸 직접 만들어 보는 테스트가 sqlExceptionTranslate()
+//SQLExceptionTranslator 를 만들려면 DB 기술 정보를 알고 있어야 하는데, 이때 dataSource 를 넣어줘야 해.
+//그래서 dataSource 를 클래스 변수로 선언해 두고 Autowired 로 받아와서 직접 넣어주고 있지.
