@@ -31,6 +31,10 @@ public class UserServiceTest521 {
         );
     }
 
+    // 지금은 트랜잭션 적용이 안 됐기 때문에 실패하는 게 맞음
+    //    org.opentest4j.AssertionFailedError:
+    //    Expected :BASIC
+    //    Actual   :SILVER
     @Test
     public void upgradeAllOrNothing() {
         //
@@ -145,16 +149,27 @@ public class UserServiceTest521 {
 //Connection c= dataSource.getConnection();
 //c.setAutoCommit(false);
 //try {
-//PreparedStatement st1 = c.prepareStatement("update users ...");
-//st1.executeUpdate();
-//PreparedStatement st2 = c.prepareStatement("delete users ...");
-//st2.executeUpdate();
-//c.commit(); // => 트랜잭션 커밋
+//      PreparedStatement st1 = c.prepareStatement("update users ...");
+//      st1.executeUpdate();
+//      PreparedStatement st2 = c.prepareStatement("delete users ...");
+//      st2.executeUpdate();
+//      c.commit(); // => 트랜잭션 커밋
 //} catch(Exception e) {
-//c.rollback(); // => 트랜잭션 롤백
+//      c.rollback(); // => 트랜잭션 롤백
 //}
 //c.close();
 //<<<<<<<<<<<<<<<<<<<
+//
+//위에 있는 JDBC 트랜잭션 코드를 보면 try/catch 블록이 있지.
+//그리고 try 블록 안에 처리하고 싶은 내용을 다 때려넣는 구조야.
+//근데 트랜잭션을 관리하는 틀 자체는 고정이겠지.
+//그 트랜잭션 안에서 어떤 작업을 할지만 계속 바뀌는 거지.
+//틀은 그대로 있고 내용물만 계속 바껴.
+//이거는 템플릿/콜백 패턴으로 구현한다고 했지.
+//고정되어서 바뀌지 않는 부분을 템플릿으로 만들어서 재활용하고
+//그 안에 담을 내용을 콜백으로 만들어서 그때 그때 유연하게 받아서 처리할 수 있게끔.
+//아마 잘 모르겠지만 이 트랜잭션 관리 코드는 템플릿/콜백 패턴으로 구현돼 있을 듯!?
+//
 //원래 DB 에서는 한 SQL 을 단위로 작업을 완료하거나 취소해.
 //한 SQL 단위로 트랜잭션을 관리하고 있어.
 //그게 기본값이야.
@@ -173,3 +188,74 @@ public class UserServiceTest521 {
 //또 애플리케이션 코드 안에서도 트랜잭션이 시작되고 끝나는 지점이 있겠지.
 //모든 트랜잭션은 시작 지점과 끝 지점이 있어.
 //이걸 트랜잭션의 경계라고 해.
+//
+//한 트랜잭션은 한 connection 안에서 열리고 닫힌다고 했어.
+//그렇다 보니 한 트랜잭션은 메소드 하나 안에서 열리고 닫혀.
+//왜냐하면 메소드 하나 안에서 connection 을 열고 무조건 닫으니까.
+//한 DAO 메소드 안에서는 DB 에 접속하고 나면 그 메소드를 나오기 전에 무조건 다시 연결을 닫아준다고 했어.
+//그니까 우리가 DAO 를 만들어서 쓴다면 한 메소드 단위로 트랜잭션이 형성되는 건 어쩔 수가 없어.
+//이거는 JDBC 기술을 가져다가 우리 직접 구현을 하든 JDBC template 을 이용하든 똑같아.
+//
+//그럼 이걸 해결하려면 어떻게 해야 할까...?
+//DAO 에서 트랜잭션 관리하는 코드 부분을 Service 로 가져와야 해.
+//트랜잭션 경계는 connection 으로 관리한다고 했지.
+//connection 을 열고 수동으로 AutoCommit 끄고 수동으로 commit 이나 rollback 해주기.
+//그러면 connection 을 Service 가 열고 닫아야 해.
+//그럼 DAO 가 가지고 있던 connection 을 Service 로 옮겨오자.
+//그러면서도 connection 은 DAO 가 가지고 있긴 해야 해.
+//왜냐하면 순수한 데이터 엑세스 로직은 DAO 가 책임지는 게 맞거든.
+//그럼 Service 에서 connection 을 열거나 닫는 걸 책임지고,
+//DAO 에서는 그 connection 을 건네받아서 사용하는 수밖에 없겠네
+//그럼 이런 느낌이 나오겠지
+// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//public void upgradeLevels() throws Exception {
+//        (1) DB connection 생성
+//        (2) 트랜잭션 시작
+//    try {
+//        (3) DAO 메소드 호출
+//        (4) 트랜잭션 커밋
+//        } catch (Exception e) {
+//        (5) 트랜잭션 롤백
+//    throw e;
+//        } finally {
+//        (6) DB connection 종료
+//}
+// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//public interface UserDao {
+//    public void add(Connection c, User user);
+//    public User get(Connection c, String id);
+//    public void update(Connection c, User user);
+//    ....
+//    ...
+//}
+// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+//근데 또 이렇게 설계하면 문제가 많아져.
+//첫째, 계층이 생길 수 있다는 거야.
+//UserDao.update() 로직을 UserService.upgradeLevels() 가 직접 호출하는 게 아니야.
+//UserService.upgradeLevel() 이라는 메소드를 호출해서 한 유저 단위로 호출해.
+//그러면 얘네도 그 connection 을 받아서 다시 DAO 에게 전달해줘야 쓸 수 있겠지.
+//결국 connection 이 돌아다니는 경로는 아래처럼 됨.
+//UserService.upgradeLevels() => UserService.upgradeLevel() => UserDao.update()
+//결국 트랜잭션 경계를 내가 원하는 대로 설정하려면,
+//트랜잭션이 필요한 최상위 메소드에서 connection 을 생성하고,
+//DAO 에 도달하기까지 그 작업에 참여하고 있는 모든 하위 메소드들이
+//connection 을 주거니 받거니 하면서 아래로 전달해줘야 해.
+//근데 이게 2,3개 계층이면 그렇다 쳐도, 계속해서 늘어나면...?
+//5,6개 proxy 패턴 쓰면 10개 넘어가고 그러면...?
+//둘째, JDBC template 못 쓰나.
+//Connection 주고 받는 코드로 짜려면 우리가 직접 JDBC context 로 만들어서 구현해야 하잖아.
+//셋째, DAO 나 Service 가 더 이상 데이터 액세스 기술로부터 독립적인 코드가 되지 못함.
+//지금 JDBC 쓰니까 connection/commit/rollback 이런 거 쓰지.
+//JPA 쓰면 EntityManager 를 쓰고 하이버네이트 쓰면 Session 을 쓰는데..?
+//넷째, 파라미터로 코드가 지저분해짐.
+//DAO 나 Service 는 스프링 컨테이너에서 싱글톤 빈으로 관리해주지.
+//근데 거기다가 Connection 을 클래스 변수로 추가해버리면...?
+//멀티 스레드 작업에서는 서로 상태가 안 맞아서 덮어쓰거나 하는 문제도 발생할 수 있음.
+//
+// UserService523.class 로 가보기
+
+
+
+
+
