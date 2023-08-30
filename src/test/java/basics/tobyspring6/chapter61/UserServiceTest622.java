@@ -9,12 +9,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(locations = {"file:src/main/resources/chapter61/test-applicationContext612.xml"})
-public class UserServiceTest621 {
+public class UserServiceTest622 {
 
     @Autowired
     private UserDao611 userDao;
@@ -26,11 +27,11 @@ public class UserServiceTest621 {
     @BeforeEach
     public void setUp() {
         this.userList = Arrays.asList(
-                new User611("id612-1", "name612-1", "psw612-1", Level611.BASIC, UserService611.MIN_LOGCOUNT_FOR_SILVER - 1, 0),
-                new User611("id612-2", "name612-2", "psw612-2", Level611.BASIC, UserService611.MIN_LOGCOUNT_FOR_SILVER, 0),
-                new User611("id612-3", "name612-3", "psw612-3", Level611.SILVER, 60, UserService611.MIN_RECOMMEND_FOR_GOLD - 1),
-                new User611("id612-4", "name612-4", "psw612-4", Level611.SILVER, 60, UserService611.MIN_RECOMMEND_FOR_GOLD),
-                new User611("id612-5", "name612-5", "psw612-5", Level611.GOLD, 100, 100)
+                new User611("id622-1", "name622-1", "psw622-1", Level611.BASIC, UserService611.MIN_LOGCOUNT_FOR_SILVER - 1, 0),
+                new User611("id622-2", "name622-2", "psw622-2", Level611.BASIC, UserService611.MIN_LOGCOUNT_FOR_SILVER, 0),
+                new User611("id622-3", "name622-3", "psw622-3", Level611.SILVER, 60, UserService611.MIN_RECOMMEND_FOR_GOLD - 1),
+                new User611("id622-4", "name622-4", "psw622-4", Level611.SILVER, 60, UserService611.MIN_RECOMMEND_FOR_GOLD),
+                new User611("id622-5", "name622-5", "psw622-5", Level611.GOLD, 100, 100)
         );
     }
 
@@ -45,9 +46,8 @@ public class UserServiceTest621 {
         //
         this.userDao.deleteAll();
         for(User611 user : this.userList) {
-            testUserService.add(user);
+            txUserService.add(user);
         }
-        //
         try {
             txUserService.upgradeLevels();
             Assertions.fail("TestUserServiceException expected");
@@ -82,6 +82,56 @@ public class UserServiceTest621 {
     }
 
     static class TestUserServiceException extends RuntimeException {
+    }
+    @Test
+    public void upgradeLevelsTest() throws Exception {
+        //
+        MockUserDao622 mockUserDao = new MockUserDao622(this.userList);
+        UserServiceImpl612 userServiceImpl = new UserServiceImpl612();
+        userServiceImpl.setUserDao(mockUserDao);
+        //
+        try {
+            userServiceImpl.upgradeLevels();
+        } catch (Exception e) {
+            throw e;
+        }
+
+        List<User611> updated = mockUserDao.getUpdated();
+        Assertions.assertEquals(2, updated.size());
+        checkUserAndLevel(updated.get(0), "id622-2", Level611.SILVER);
+        checkUserAndLevel(updated.get(1), "id622-4", Level611.GOLD);
+    }
+    public void checkUserAndLevel(User611 updated, String expectedId, Level611 expectedLevel) {
+        Assertions.assertEquals(expectedId, updated.getId());
+        Assertions.assertEquals(expectedLevel, updated.getLevel());
+    }
+    static class MockUserDao622 implements UserDao611 {
+        List<User611> userList;
+        List<User611> updated = new ArrayList<>();
+        public MockUserDao622(List<User611> userList) {
+            this.userList = userList;
+        }
+        public List<User611> getAll() {
+            return this.userList;
+        }
+        public void update(User611 user) {
+            this.updated.add(user);
+        }
+        public List<User611> getUpdated() {
+            return this.updated;
+        }
+        public void add(User611 user) {
+            throw new UnsupportedOperationException();
+        }
+        public User611 get(String id) {
+            throw new UnsupportedOperationException();
+        }
+        public int getCount() {
+            throw new UnsupportedOperationException();
+        }
+        public void deleteAll() {
+            throw new UnsupportedOperationException();
+        }
     }
 
 }
