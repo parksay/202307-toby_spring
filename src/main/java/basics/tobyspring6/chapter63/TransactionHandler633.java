@@ -76,3 +76,4 @@ public class TransactionHandler633 implements InvocationHandler {
 //Proxy 로 만들 때 InvocationHandler 파라미터만 TransactionHandler 로 넣어주면 됨.
 //메소드 이름만 패턴 잘 맞춰가지고 통일성 있게 해가지고 넣어주면 어떤 메소드든 트랜잭션 관리해 줌.
 // 아 패턴도 그때 그때 파라미터로 넣어 만들어 줄 수 있네, 프록시 만들 때.
+// UserServiceTest633.class 로 가 보자.
