@@ -18,7 +18,7 @@ public class TransactionHandler633 implements InvocationHandler {
         this.target = target;
     }
 
-    public void setFilter(String pattern) {
+    public void setPattern(String pattern) {
         this.pattern = pattern;
     }
 

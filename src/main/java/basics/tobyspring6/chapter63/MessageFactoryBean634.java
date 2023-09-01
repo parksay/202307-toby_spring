@@ -2,7 +2,7 @@ package basics.tobyspring6.chapter63;
 
 import org.springframework.beans.factory.FactoryBean;
 
-public class MessageFactoryBean634 implements FactoryBean {
+public class MessageFactoryBean634 implements FactoryBean<Message634> {
 
     String text;
 

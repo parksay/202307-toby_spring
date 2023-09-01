@@ -43,7 +43,7 @@ public class UserServiceTest633 {
         TestUserService testUserService = new TestUserService(this.userList.get(3).getId());
         testUserService.setUserDao(this.userDao);
         TransactionHandler633 txHandler = new TransactionHandler633();
-        txHandler.setFilter("upgrade");
+        txHandler.setPattern("upgrade");
         txHandler.setTarget(testUserService);
         txHandler.setTransactionManager(this.transactionManager);
         UserService612 userServiceTx = (UserService612) Proxy.newProxyInstance(
