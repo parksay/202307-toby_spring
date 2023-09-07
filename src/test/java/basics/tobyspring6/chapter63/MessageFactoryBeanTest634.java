@@ -63,6 +63,8 @@ public class MessageFactoryBeanTest634 {
 //그 안에 구현해 놓은 getObject() 메소드를 실행해서 그 결과값을 빈으로 등록한다고 했지.
 //근데 나는 그게 아닌데?
 //나는 진짜로 MessageFactoryBean.class 를 빈으로 등록하고 싶은 건데...?
+//이럴 때는 getBean() 할 때 빈 이름 앞에다가 "&" 를 붙여주면 됨.
 //그런 경우가 또 필요해.
 //뒤에 나와.
-//이럴 때는 getBean() 할 때 빈 이름 앞에다가 "&" 를 붙여주면 됨.
+//어디서 나오냐?
+//UserService634.class 로 가보기.

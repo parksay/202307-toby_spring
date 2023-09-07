@@ -89,6 +89,7 @@ public class TxProxyFactoryBean634 implements FactoryBean<Object> {
 //이것도 맞을까...?
 //어려워 보이지만 스프링 컨테이너의 강력한 DI 기능은 가능성이 무한하다고.
 //라고, 토비가 말함.
+// HelloTest641 로 가 보기.
 //
 //
 //

@@ -112,7 +112,7 @@ public class UserServiceTest634 {
 
 }
 
-
+//p.456
 //지금 UserService 클래스의 upgradeLevels() 메소드가 트랜잭션 기능이 적용되는지 확인해보고 싶은 거야.
 //우리가 프록시로 만든 빈이 잘 작동하나 안 하나.
 //그러려면 정상 작동하는 UserServiceImpl 이 아니라 중간에 예외를 발생시키는 TestUserService 를 실행해야지.
