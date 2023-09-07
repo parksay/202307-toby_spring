@@ -183,7 +183,11 @@ public class HelloTest641 {
 //포인트컷은 Pointcut 이라는 인터페이스를 구현해서 만들어.
 //어드바이스는 메소드를 실행하기 전에 포인트컷한테 이 메소드에 부가기능 붙일지 말지 확인 받고 실행함.
 //이런 구조로 만들어 놓고 어드바이스와 포인트컷은 DI 로 넣어서 활용함.
-
+//이전에 만들었던 HelloTest641 에 있는 proxyFactoryBeanTest() 테스트를 pointcut 넣어서 바꾼 게 pointcutAdvisor()
+// 그러면 이제 우리가 다이나믹 프록시 기술로 구현했던 트랜직션 기능을 ProxyBeanFactory 방식으로 바꿔보자.
+// InvocationHandler 인터페이스를 구현했던 TransactionHandler 를 MethodInterceptor 인터페이스를 구현하도록 바꿔보자.
+// 바꿔서 완성한 게 TransactionAdvice642.class
+// 이렇게 구현한 클래스가 잘 작동하는지 테스트한 게 UserServiceTest642.class
 
 
 
