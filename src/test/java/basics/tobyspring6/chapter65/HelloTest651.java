@@ -214,6 +214,7 @@ public class HelloTest651 {
 //}
 //자 그럼 실제로 여러 이름으로 클래스를 만들고 포인트컷이 진짜 클래스까지 걸러주는지 보자고.
 //그 테스트가 HelloTest651 클래스의 classNamePointcutAdvisor() 테스트.
-
+//포인트컷이 잘 작동하는지 확인했으니 이제 실제로 빈 후처리기 BeanPostProcessor 를 적용해 보자.
+//UserServiceTest652.class 로 가기.
 
 
