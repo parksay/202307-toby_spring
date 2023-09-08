@@ -120,6 +120,7 @@ public class UserServiceTest652 {
 //그렇게 해놓고 다른 모든 빈들이 생성될 때마다 미리 찾아놨던 Advisor 에 갖다 대보면서  advice 를 적용할지 말지 pointcut 에 물어봄.
 //그러다가 프록시 적용 대상이라고 판단되면 원래 등록되어야 하는 빈 대신에 새로 만든 프록시 빈을 바꿔치기해서 등록함.
 //자 그럼 일단 DefaultAdvisorProxyCreator 를 빈으로 등록해야겠지.
+//test-applicationContext652.xml 파일을 보자.
 //<bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator" />
 ////
 //빈 후처리기 BeanPostProcessor 를 등록했으니까 이제 이 빈 후처리기가 탐색해서 가져갈 advisor 를 빈으로 등록할 차례야.
