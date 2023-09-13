@@ -116,7 +116,7 @@ public class UserServiceTest664 {
 
     @Test
     public void readOnlyTransactionAttribute() {
-        testUserService.getAll();
+        this.testUserService.getAll();
     }
 }
 

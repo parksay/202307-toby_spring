@@ -73,7 +73,7 @@
 <!--    </aop:config>-->
 <!--    위처럼 pointcut 을 따로 선언해두고 ref 참조해오는 방법도 있지만 값을 바로 넣어주는 방법이 더 간결함. 물론 여러 번 재사용할 거면 따로 두는 편이 나음-->
     <aop:config>
-        <aop:advisor advice-ref="transactionAdvice" pointcut="execution(* *..*ServiceImpl*.upgrade*(..))"/>
+        <aop:advisor advice-ref="transactionAdvice" pointcut="bean(*Service*)"/>
     </aop:config>
 
 </beans>
