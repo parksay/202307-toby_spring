@@ -77,6 +77,7 @@ public class UserServiceTest664 {
             if(user.getId().equals(this.stopId)) throw new TestUserServiceException();
             super.upgradeLevel(user);
         }
+
         public List<User611> getALl() {
             for(User611 user : super.getAll()) {
                 super.update(user);

@@ -13,15 +13,22 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.UnexpectedRollbackException;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.util.Arrays;
 import java.util.List;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(locations = {"file:src/main/resources/chapter66/test-applicationContext664.xml"})
+@ContextConfiguration(locations = {"file:src/main/resources/chapter68/test-applicationContext682.xml"})
 public class UserServiceTest682 {
 
     @Autowired
@@ -31,98 +38,105 @@ public class UserServiceTest682 {
     @Autowired
     private UserService664 userService;
     @Autowired
-    private UserService664 testUserService;
+    private PlatformTransactionManager transactionManager;
 
     private List<User611> userList;
 
     @BeforeEach
     public void setUp() {
         this.userList = Arrays.asList(
-                new User611("id664-1", "name664-1", "psw664-1", Level611.BASIC, UserService611.MIN_LOGCOUNT_FOR_SILVER - 1, 0),
-                new User611("id664-2", "name664-2", "psw664-2", Level611.BASIC, UserService611.MIN_LOGCOUNT_FOR_SILVER, 0),
-                new User611("id664-3", "name664-3", "psw664-3", Level611.SILVER, 60, UserService611.MIN_RECOMMEND_FOR_GOLD - 1),
-                new User611("id664-4", "name664-4", "psw664-4", Level611.SILVER, 60, UserService611.MIN_RECOMMEND_FOR_GOLD),
-                new User611("id664-5", "name664-5", "psw664-5", Level611.GOLD, 100, 100)
+                new User611("id682-1", "name682-1", "psw682-1", Level611.BASIC, UserService611.MIN_LOGCOUNT_FOR_SILVER - 1, 0),
+                new User611("id682-2", "name682-2", "psw682-2", Level611.BASIC, UserService611.MIN_LOGCOUNT_FOR_SILVER, 0),
+                new User611("id682-3", "name682-3", "psw682-3", Level611.SILVER, 60, UserService611.MIN_RECOMMEND_FOR_GOLD - 1),
+                new User611("id682-4", "name682-4", "psw682-4", Level611.SILVER, 60, UserService611.MIN_RECOMMEND_FOR_GOLD),
+                new User611("id682-5", "name682-5", "psw682-5", Level611.GOLD, 100, 100)
         );
     }
 
     @Test
-    @DirtiesContext
-    public void upgradeAllOrNothing() throws Exception {
+    public void transactionSyncTest() {
         //
-        this.userDao.deleteAll();
-        for(User611 user : this.userList) {
-            this.testUserService.add(user);
-        }
-        try {
-            this.testUserService.upgradeLevels();
-            Assertions.fail("TestUserServiceException expected");
-        } catch (TestUserServiceException e) {
-            // on test
-        } catch (Exception e) {
-            throw e;
-        }
+        DefaultTransactionDefinition txDefinition = new DefaultTransactionDefinition();
+        txDefinition.setReadOnly(true); // 트랜잭션 속성 read-only 로 설정
+        txDefinition.setTimeout(30);
+        // 트랜잭션 열기
+        TransactionStatus txStatus = this.transactionManager.getTransaction(txDefinition);
+        //
+        Assertions.assertThrows(TransientDataAccessResourceException.class,
+                ()->{
+                    // 위에서 이미 read-only 트랜잭션을 열어 뒀음
+                    // deleteAll() 이나 add() 의 트랜잭션은 위에서 만든 트랜잭션에 참여했을 것으로 기대
+                    // 그런데 아래에서 쓰기를 시도하므로 예외가 발생해야 정상
+                    this.userService.deleteAll();
+                    this.userService.add(this.userList.get(0));
+                    this.userService.add(this.userList.get(1));
+                });
 
-        checkLevelUpgraded(this.userList.get(1), false);
+        // 트랜잭션 닫기
+        Assertions.assertThrows(UnexpectedRollbackException.class,
+                ()->{
+                    // 위에서 read-only 트랜잭션에 쓰기 작업 시도해서 예외가 발생함
+                    // 이거를 commit 하려고 시도하니까 '이미 롤백했는데여?' 예외 발생해야 정상
+                    this.transactionManager.commit(txStatus);
+                });
 
-    }
-
-    private void checkLevelUpgraded(User611 user, boolean upgraded) {
-        User611 userRead = this.userDao.get(user.getId());
-        if(upgraded) {
-            Assertions.assertEquals(user.getLevel().nextLevel(), userRead.getLevel());
-        } else {
-            Assertions.assertEquals(user.getLevel(), userRead.getLevel());
-        }
-    }
-
-    static class TestUserServiceImpl extends UserServiceImpl664 {
-        private String stopId = "id664-4";
-        public void upgradeLevel(User611 user) {
-            if(user.getId().equals(this.stopId)) throw new TestUserServiceException();
-            super.upgradeLevel(user);
-        }
-        public List<User611> getALl() {
-            for(User611 user : super.getAll()) {
-                super.update(user);
-            }
-            return null;
-        }
-    }
-
-    static class TestUserServiceException extends RuntimeException {
     }
 
     @Test
-    public void upgradeLevelsTest() throws Exception {
+    public void rollbackTest() {
         //
-        UserDao611 mockUserDao = Mockito.mock(UserDao611.class);
-        Mockito.when(mockUserDao.getAll()).thenReturn(this.userList);
-        UserServiceImpl664 userServiceImpl = new UserServiceImpl664();
-        userServiceImpl.setUserDao(mockUserDao);
+        DefaultTransactionDefinition txDefinition = new DefaultTransactionDefinition();
+        TransactionStatus txStatus = this.transactionManager.getTransaction(txDefinition);
         //
         try {
-            userServiceImpl.upgradeLevels();
-        } catch (Exception e) {
-            throw e;
+            this.userService.deleteAll();
+            this.userService.add(this.userList.get(0));
+            this.userService.add(this.userList.get(1));
+        } finally {
+            this.transactionManager.rollback(txStatus);
         }
+        // 아래 finally 에서 무조건 rollback 해 버리므로 try 에서 뭔 짓을 하든 마음 놓고 해도 됨.
 
-        Mockito.verify(mockUserDao, Mockito.times(2)).update(Mockito.any(User611.class));
-        Mockito.verify(mockUserDao).update(this.userList.get(1));
-        Assertions.assertEquals(this.userList.get(1).getLevel(), Level611.SILVER);
-        Mockito.verify(mockUserDao).update(this.userList.get(3));
-        Assertions.assertEquals(this.userList.get(3).getLevel(), Level611.GOLD);
     }
 
     @Test
-    public void advisorAutoProxyCreator() {
-        Assertions.assertInstanceOf(java.lang.reflect.Proxy.class, this.testUserService);
+    @Transactional
+    public void transactionAnnotationTest() {
+        // 테스트 메소드에 붙은 @Transactional 어노테이션은 기본적으로 rollback 되도록 설정돼 있음
+        // 메소드에 @Transactional 붙여 놓으면 그 테스트 메소드 안에서 무슨 짓을 하든 마음 놓고 해도 됨.
+        // 어차피 다 rollback
+        this.userService.deleteAll();
+        this.userService.add(this.userList.get(0));
+        this.userService.add(this.userList.get(1));
     }
 
     @Test
-    public void readOnlyTransactionAttribute() {
-        this.testUserService.getAll();
+    @Transactional(readOnly = true)
+    public void transactionAnnotationReadOnlyTest() {
+        // @Transactional 어노테이션에 read-only 를 설정했기 때문에 메소드를 시작하면서 read-only 트랜잭션을 열어 둠.
+        // deleteAll() 이나 add() 의 트랜잭션은 위에서 만든 read-only 트랜잭션에 참여함
+        // 그런데 아래에서 쓰기를 시도하므로 예외가 발생해야 정상
+        Assertions.assertThrows(TransientDataAccessResourceException.class,
+                ()->{
+                    this.userService.deleteAll();
+                    this.userService.add(this.userList.get(0));
+                    this.userService.add(this.userList.get(1));
+                });
     }
+
+    @Test
+    @Transactional
+    @Rollback(false)
+    public void rollbackAnnotationTest() {
+        // @Transactional 어노테이션이 붙은 메소드는 메소드 전체를 자동으로 rollback 시켜줌.
+        // 근데 메소드 전체를 트랜잭션으로 묶고 싶어서 @Transactional 은 쓰는데 커밋은 하고 싶어
+        // 그러면 @Transactional 어노테이션에  default 로 들어 있던 rollback 속성을 수동으로 지정해줘야 함.
+        // 수동으로 박아주는 게 @Rollback 어노테이션
+        this.userService.deleteAll();
+        this.userService.add(this.userList.get(0));
+        this.userService.add(this.userList.get(1));
+    }
+
 }
 
 
@@ -186,7 +200,7 @@ public class UserServiceTest682 {
 //add() 메소드가 자체적인 트랜잭션을 가지고 있더라도 먼저 열려 있는 트랜잭션이 있다면 우선은 거기에 참여하도록 만들 수가 있다.
 //이러면 한 비지니스 로직 안에서 어떤 메소드를 몇 개를 부르든 한 트랜잭션으로 묶어서 수행할 수가 있다.
 //중간에 어디에서 실패를 하든 전체를 롤백하거나 성공하면 커밋할 수 있게 됐다.
-////
+// p.541 - chapter.6.8.2
 //이런 트랜잭션 전파라는 기능이 가능했던 일등공신은 바로 트랜잭션 매니저와 트랜잭션 동기화 기술이다.
 //트랜잭션 매니저가 트랜잭션을 총괄해서 관리해주고 있기 때문에 다른 곳에서는 이미 열려 있는 트랜잭션이 있는지 확인할 때 매니저한테만 물어보면 된다.
 //이미 열려 있는 트랜잭션이 있다면 트랜잭션 매니저한테 받아오고, 없다면 새로 만들어서 보관한다.
@@ -203,4 +217,39 @@ public class UserServiceTest682 {
 //그런데 한 테스트 안에서 트랜잭션을 관리한다면?
 //테스트가 시작될 때 트랜잭션을 열고, DB에 어떤 작업을 한 다음에, 테스트가 끝날 때 모두 강제로 rollback 시켜버리면...?
 //한 테스트 메소드와 다른 테스트 메소드 사이에 영향을 주고 받지 않는다.
-//개발자들끼리도 영향을 주고 받지 않는다.
+//개발자들끼리도 영향을 주고 받지 않는다. (rollbackTest() 참고)
+//이렇게 테스트가 끝날 때 작업 내용을 모두 rollback 해버리는 테스트를 '롤백 테스트'라고 한다.
+////
+// p.549 - chapter.6.8.3
+//그러면 롤백 테스트를 만들려면 테스트 메소드마다 트랜잭션 관리 로직을 똑같이 반복해서 넣어줘야 할까?
+//이러한 귀찮고 반복적인 작업을 스프링에서는 애노테이션 하나로 지원한다.
+//바로 @Transactional 어노테이션이다.
+//@Transactional 어노테이션은 애플리케이션 코드뿐만 아니라 테스트 코드에도 똑같이 붙일 수 있다.
+//테스트에서 쓰는 @Transactional 어노테이션은 애플리케이션 코드에서 쓰는 @Transactional 어노테이션과 똑같은 효과를 가져오지만 AOP 가 목적은 아니다.
+//테스트에서 쓰는 @Transactional 어노테이션도 대상 단위는 마찬가지로 똑같이 클래스나 메소드 모두 가능하다.
+//메소드 하나를 통째로 한 트랜잭션으로 묶어주거나 클래스 안에 있는 테스트 메소드 전체에 트랜잭션을 일괄적으로 적용할 수 있다.
+////
+//다만 애플리케이션에서 쓰는 @Transactional 어노테이션과 다른 점은 rollback 기능이다.
+//테스트 메소드나 클래스에 붙는 @Transactional 어노테이션은 끝날 때 자동으로 rollback 을 진행한다.
+//정말인지 확인하려면 테스트에서 DB 데이터를 삭제하거나 추가해놓고 그 결과를 DB에 접속해 직접 조회하면 된다. (transactionAnnotationTest() 테스트 참고)
+////
+//정말로 트랜잭션으로 묶이기는 할까?
+//확인해보려면 @Transactional 어노테이션에 트랜잭션 속성을 read-only 로 설정해 놓고 쓰기 작업을 진행해 보자.
+//read-only 트랜잭션에서 데이터 쓰기 작업을 진행했으므로 예외가 발생해야 정상이다. (transactionAnnotationReadOnlyTest() 테스트 참고)
+////
+//그런데 테스트이기는 하지만 무조건 롤백시키려는 건 아니고 그대로 커밋을 하고 싶을 때는 어떻게 해야 할까.
+//그럴 때는 @Transactional 어노테이션이 자동으로 지정해둔 rollback 속성을 수동으로 변경해줘야 한다.
+//그러한 기능을 하는 어노테이션이 @Rollback 이다.
+//@Rollback(true) / @Rollback(false) 등으로 지정이 가능하다.
+////
+//어떤 클래스 안에 있는 메소드 전체에 rollback 을 true 나 false 로 지정하고 싶을 때는 어떻게 해야 할까?
+//메소드 하나마다 찾아서 @Rollback 어노테이션 때려박아야 하나.
+//클래스 전체에 트랜잭션 속성을 일괄적으로 적용해주는 어노테이션이 있다.
+//클래스에 @Transactional 어노테이션을 붙이고 @TransactionConfiguration 어노테이션까지 덧붙이는 것이다.
+//ex) @TransactionConfiguration(defaultRollback=false) 이런 식이다.
+////
+//그런데 또 클래스 전체 메소드에는 일괄적으로 rollback 을 false 로 지정해두고 싶지만 어떤 특정 메소드들만 true 로 지정하고 싶다.
+//이럴 때는 다시 @Rollback 어노테이션을 사용하면 된다.
+//클래스에 일괄적으로 적용한 트랜잭션 속성과는 다르게 지정하고 싶은 특정 메소드들에 @Rollback 어노테이션을 붙여서 개별 지정해줄 수 있다.
+//@Rollback 어노테이션은 메소드에만 붙일 수 있다.
+//
